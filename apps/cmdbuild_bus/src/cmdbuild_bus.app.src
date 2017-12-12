@@ -10,7 +10,7 @@
     inets
    ]},
   {env,[
-      {es_url_bulk, "http://172.19.199.236:9200/_bulk" },
+      {es_url_bulk, "http://localhost:9200/_bulk" },
       {es_dst_index, #{
                         <<"_index">> => <<"test">>, 
                         <<"_type">>  => <<"test">>

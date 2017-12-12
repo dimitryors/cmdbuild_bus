@@ -1,0 +1,6 @@
+-sname cmdbuild_bus
+
+-setcookie cmdbuild_bus_cookie
+
++K true
++A30

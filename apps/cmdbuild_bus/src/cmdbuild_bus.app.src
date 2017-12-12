@@ -10,7 +10,8 @@
     inets
    ]},
   {env,[
-      {es_url_bulk, "http://localhost:9200/_bulk" },
+      {http_options, [{timeout, 15000}]},
+      {es_url_bulk, "http://172.19.199.236:9200/_bulk" },
       {es_dst_index, #{
                         <<"_index">> => <<"test">>, 
                         <<"_type">>  => <<"test">>
@@ -22,7 +23,8 @@
                                     <<"password">> => <<"cmdb">>
                                   }
       },
-      {cmdbuild_sync_classes, ["Application", "Metric",  "Network", "Node", "Organization", "Service", "Virtualization"]}
+      {cmdbuild_sync_classes, ["Application", "Metric",  "Network", "Node", "Organization", "Service", "Virtualization"]},
+      {sync_each_ms, 15000}
   ]},
   {modules, []},
 

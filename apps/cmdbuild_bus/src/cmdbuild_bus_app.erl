@@ -8,7 +8,7 @@
 -behaviour(application).
 
 -define(SERVER, ?MODULE).
--record(state, {name}).
+-record(state, {name, timer}).
 
 %% Application callbacks
 -export([start_link/0, start/2, stop/1]).
@@ -26,7 +26,8 @@ start(_StartType, _StartArgs) ->
     cmdbuild_bus_sup:start_link().
 
 init([]) ->
-    {ok, #state{}}.
+    Timer = erlang:send_after(1, self(), check),
+    {ok, #state{timer=Timer}}.
 
 %%--------------------------------------------------------------------
 stop(_State) ->
@@ -60,6 +61,13 @@ handle_cast({cmdb_to_es}, State) ->
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
+handle_info(check, State) ->
+    erlang:cancel_timer(State#state.timer),
+    {ok, Ms} = application:get_env(cmdbuild_bus, sync_each_ms),
+    cmdb_to_es(),
+    Timer = erlang:send_after(Ms, self(), check),
+    NewState = State#state{timer=Timer},
+    {noreply, NewState};
 handle_info(_Info, State) ->
     {noreply, State}.
 
@@ -86,7 +94,7 @@ request_cmdb({get_cis, SessionId, ClassesCI }) ->
                     {"Content-Type", "application/json"},
                     {"CMDBuild-Authorization", SessionId}
                 ],
-    HttpOptions = [],
+    {ok, HttpOptions} = application:get_env(cmdbuild_bus, http_options),
     RequestOptions = [],
     %%
     % For each class in the CIs Classes List do following
@@ -130,7 +138,7 @@ request_cmdb({get_ci, SessionId, ClassCI }) ->
                     {"Content-Type", "application/json"},
                     {"CMDBuild-Authorization", SessionId}
                 ],
-    HttpOptions = [],
+    {ok, HttpOptions} = application:get_env(cmdbuild_bus, http_options),
     RequestOptions = [],
     %%
     % Do request for CI data
@@ -178,7 +186,7 @@ request_es({post_data, Data}) ->
     HttpHeader = [{"Content-Type", "application/x-ndjson"}],
     Type = [],
     Body = nl_separate_list(Data), % Separate all CIs by new line (required by Elasticsearch)
-    HttpOptions = [],
+    {ok, HttpOptions} = application:get_env(cmdbuild_bus, http_options),
     RequestOptions = [],
     httpc:request(Method, {Url, HttpHeader, Type, Body}, HttpOptions, RequestOptions).
 

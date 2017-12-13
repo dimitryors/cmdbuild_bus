@@ -47,17 +47,17 @@ cmdb_to_es() ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
-
-handle_call(_Request, _From, State) ->
-    Reply = ok,
-    {reply, Reply, State}.
-
-handle_cast({cmdb_to_es}, State) ->
+handle_call({cmdb_to_es}, _From, State) ->
     {ok, ClassCI} = application:get_env(cmdbuild_bus, cmdbuild_sync_classes),
     {ok, SessionId} = request_cmdb({get_sessionid}),
     {ok, CIs}   = request_cmdb({get_cis, SessionId, ClassCI}),
     request_es({post_data, CIs}),
-    {noreply, State};
+    Reply = ok,
+    {reply, Reply, State};
+handle_call(_Request, _From, State) ->
+    Reply = ok,
+    {reply, Reply, State}.
+
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
